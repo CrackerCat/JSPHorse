@@ -3,6 +3,7 @@ package org.sec;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import org.sec.module.IdentifyModule;
 import org.sec.module.StringModule;
 import org.sec.module.SwitchModule;
 import org.sec.module.XORModule;
@@ -33,11 +34,12 @@ public class Main {
         }
 
         String newValue = SwitchModule.shuffle(method);
-        SwitchModule.changeSwitch(method,newValue);
+        SwitchModule.changeSwitch(method, newValue);
         int offset = StringModule.encodeString(method);
-        StringModule.changeRef(method,offset);
+        StringModule.changeRef(method, offset);
+        IdentifyModule.doIdentify(method);
         XORModule.doXOR(method);
-        WriteUtil.write(method,password);
+        WriteUtil.write(method, password);
     }
 }
 

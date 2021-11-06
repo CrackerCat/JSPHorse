@@ -3,10 +3,11 @@ package org.sec;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import org.sec.module.StringModule;
 import org.sec.module.SwitchModule;
 import org.sec.module.XORModule;
 import org.sec.util.FileUtil;
-import org.sec.util.PrintUtil;
+import org.sec.util.WriteUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,7 +25,6 @@ public class Main {
 
         InputStream in = Main.class.getClassLoader().getResourceAsStream("base.java");
         String code = FileUtil.readFile(in);
-        code = code.replace("4ra1n", password);
         CompilationUnit unit = StaticJavaParser.parse(code);
         MethodDeclaration method = unit.findFirst(MethodDeclaration.class).isPresent() ?
                 unit.findFirst(MethodDeclaration.class).get() : null;
@@ -34,9 +34,10 @@ public class Main {
 
         String newValue = SwitchModule.shuffle(method);
         SwitchModule.changeSwitch(method,newValue);
+        int offset = StringModule.encodeString(method);
+        StringModule.changeRef(method,offset);
         XORModule.doXOR(method);
-        System.out.println(method.getBody().isPresent() ? method.getBody().get().toString() : "");
-        PrintUtil.print(method);
+        WriteUtil.write(method,password);
     }
 }
 

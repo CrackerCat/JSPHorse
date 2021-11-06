@@ -23,6 +23,8 @@
 
 ## Quick Start
 
+在Github右侧Release页面下载
+
 生成标准形式Webshell
 
 `java -jar JSPHorse.jar -p your_password`

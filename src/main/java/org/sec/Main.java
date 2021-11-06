@@ -1,8 +1,11 @@
 package org.sec;
 
+import com.beust.jcommander.JCommander;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import org.sec.input.Command;
+import org.sec.input.Logo;
 import org.sec.module.IdentifyModule;
 import org.sec.module.StringModule;
 import org.sec.module.SwitchModule;
@@ -16,20 +19,30 @@ import java.io.InputStream;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        String password = null;
-        if (args.length == 1 && !args[0].equals("")) {
-            password = args[0];
-        } else {
-            System.out.println("error input");
+        Logo.PrintLogo();
+        System.out.println("Wait 1 Minute ... ");
+
+        Command command = new Command();
+        JCommander jc = JCommander.newBuilder().addObject(command).build();
+        jc.parse(args);
+        if (command.help) {
+            jc.usage();
+        }
+        String password = command.password;
+        boolean useUnicode = command.unicode;
+
+        if (command.javascript) {
+            InputStream in = Main.class.getClassLoader().getResourceAsStream("JS.java");
+            String code = FileUtil.readFile(in);
+            code = code.replace("__PASSWORD__", password);
+            FileUtil.writeFile("result.jsp", code);
             return;
         }
 
-        InputStream in = Main.class.getClassLoader().getResourceAsStream("base.java");
-        String code = FileUtil.readFile(in);
-        CompilationUnit unit = StaticJavaParser.parse(code);
-        MethodDeclaration method = unit.findFirst(MethodDeclaration.class).isPresent() ?
-                unit.findFirst(MethodDeclaration.class).get() : null;
-        if (method == null) {
+        MethodDeclaration method = getMethod("Base.java");
+        MethodDeclaration decMethod = getMethod("Dec.java");
+
+        if (method == null || decMethod == null) {
             return;
         }
 
@@ -39,7 +52,23 @@ public class Main {
         StringModule.changeRef(method, offset);
         IdentifyModule.doIdentify(method);
         XORModule.doXOR(method);
-        WriteUtil.write(method, password);
+        XORModule.doXOR(method);
+
+        int decOffset = StringModule.encodeString(decMethod);
+        StringModule.changeRef(decMethod, decOffset);
+        IdentifyModule.doIdentify(decMethod);
+        XORModule.doXOR(decMethod);
+
+        WriteUtil.write(method, decMethod, password, useUnicode);
+        System.out.println("Finish!");
+    }
+
+    private static MethodDeclaration getMethod(String name) throws IOException {
+        InputStream in = Main.class.getClassLoader().getResourceAsStream(name);
+        String code = FileUtil.readFile(in);
+        CompilationUnit unit = StaticJavaParser.parse(code);
+        return unit.findFirst(MethodDeclaration.class).isPresent() ?
+                unit.findFirst(MethodDeclaration.class).get() : null;
     }
 }
 

